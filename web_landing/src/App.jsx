@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot } from 'firebase/firestore';
+import { getFirestore, collection, doc, setDoc, getDoc, updateDoc, onSnapshot, query, where, getDocs } from 'firebase/firestore';
 
 // 1. Firebase configuration
 const firebaseConfig = {
@@ -720,9 +720,29 @@ export default function App() {
   const toggleClinicActive = async (clinicId, currentActive) => {
     setUpdatingClinicId(clinicId);
     try {
+      const nextActive = !currentActive;
+      const hundredYearsFuture = new Date();
+      hundredYearsFuture.setFullYear(hundredYearsFuture.getFullYear() + 100);
+      const trialEndDateStr = hundredYearsFuture.toISOString();
+
       await updateDoc(doc(db, "clinics", clinicId), {
-        isActive: !currentActive
+        isActive: nextActive,
+        isSubscriptionActive: nextActive,
+        paymentStatus: nextActive ? 'approved' : 'suspended',
+        trialEndDate: trialEndDateStr
       });
+
+      // Si se activa la clínica, activar todos sus usuarios y renovar su fecha de contraseña
+      if (nextActive) {
+        const usersQuery = query(collection(db, "users"), where("clinicId", "==", clinicId));
+        const usersSnap = await getDocs(usersQuery);
+        for (const userDoc of usersSnap.docs) {
+          await updateDoc(doc(db, "users", userDoc.id), {
+            isActive: true,
+            lastPasswordChange: new Date().toISOString()
+          });
+        }
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -733,10 +753,26 @@ export default function App() {
   const approveClinicPayment = async (clinicId) => {
     setUpdatingClinicId(clinicId);
     try {
+      const hundredYearsFuture = new Date();
+      hundredYearsFuture.setFullYear(hundredYearsFuture.getFullYear() + 100);
+      const trialEndDateStr = hundredYearsFuture.toISOString();
+
       await updateDoc(doc(db, "clinics", clinicId), {
         isActive: true,
-        paymentStatus: 'approved'
+        isSubscriptionActive: true,
+        paymentStatus: 'approved',
+        trialEndDate: trialEndDateStr
       });
+
+      // Activar usuarios y renovar contraseña
+      const usersQuery = query(collection(db, "users"), where("clinicId", "==", clinicId));
+      const usersSnap = await getDocs(usersQuery);
+      for (const userDoc of usersSnap.docs) {
+        await updateDoc(doc(db, "users", userDoc.id), {
+          isActive: true,
+          lastPasswordChange: new Date().toISOString()
+        });
+      }
     } catch (err) {
       console.error(err);
     } finally {

@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_theme.dart';
 import '../../../auth/domain/entities/app_user.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../domain/entities/clinic_absence.dart';
 import '../../domain/entities/room_model.dart';
 import '../providers/admin_provider.dart';

@@ -576,7 +576,12 @@ class _PatientDetailScreenState extends ConsumerState<PatientDetailScreen> {
 ━━━━━━━━━━━━━━━━━━━━━━━
 Recuerda asistir a tus sesiones puntualmente y realizar los ejercicios asignados en el portal.
 ''';
-    SharePlus.instance.share(text.trim(), subject: 'Resumen Clínico - ${patient.name}');
+    SharePlus.instance.share(
+      ShareParams(
+        text: text.trim(),
+        subject: 'Resumen Clínico - ${patient.name}',
+      ),
+    );
   }
 
   Widget _buildSectionHeader(IconData icon, String title) {

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
 import '../../domain/entities/app_user.dart';
@@ -370,15 +371,24 @@ class FirebaseAuthRepository implements AuthRepository {
     required String securityAnswer,
     required String newPassword,
   }) async {
-    // 1. Buscar al usuario por nombre de usuario
-    final querySnapshot = await _firestore
+    // 1. Buscar al usuario por nombre de usuario o correo
+    final cleanInput = username.trim().toLowerCase();
+    var querySnapshot = await _firestore
         .collection('users')
-        .where('username', isEqualTo: username.trim().toLowerCase())
+        .where('username', isEqualTo: cleanInput)
         .limit(1)
         .get();
 
     if (querySnapshot.docs.isEmpty) {
-      throw Exception('No se encontró ningún usuario con ese nombre de usuario.');
+      querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: cleanInput)
+          .limit(1)
+          .get();
+    }
+
+    if (querySnapshot.docs.isEmpty) {
+      throw Exception('No se encontró ningún usuario con ese nombre de usuario o correo.');
     }
 
     final doc = querySnapshot.docs.first;
@@ -390,20 +400,33 @@ class FirebaseAuthRepository implements AuthRepository {
       throw Exception('El usuario no configuró preguntas de seguridad.');
     }
 
-    final savedAnswer = securityQuestions['answer_hashed'] as String;
+    final savedAnswer = (securityQuestions['answer_hashed'] as String? ?? '').trim().toLowerCase();
     final inputAnswer = securityAnswer.trim().toLowerCase();
 
-    // 2. Validar respuesta de seguridad
+    // 2. Validar respuesta de seguridad (insensible a mayúsculas/minúsculas y espacios)
     if (savedAnswer != inputAnswer) {
       throw Exception('La respuesta de seguridad es incorrecta.');
     }
 
-    // 3. Enviar correo de restablecimiento (Firebase Auth requiere email)
-    if (email != null) {
-      await _firebaseAuth.sendPasswordResetEmail(email: email);
+    // 3. Si el usuario aún no ha iniciado sesión por primera vez (pendingAuth de la web)
+    if (userData['pendingAuth'] == true) {
+      await _firestore.collection('users').doc(doc.id).update({
+        'tempPassword': newPassword,
+        'lastPasswordChange': DateTime.now().toIso8601String(),
+      });
+      return;
     }
 
-    // 4. Marcar que se requiere cambio inmediato
+    // 4. Si ya es usuario activo en Firebase Auth, enviar correo de restablecimiento
+    if (email != null) {
+      try {
+        await _firebaseAuth.sendPasswordResetEmail(email: email);
+      } catch (e) {
+        debugPrint("Error enviando reset email: $e");
+      }
+    }
+
+    // 5. Marcar cambio de fecha de contraseña
     await _firestore.collection('users').doc(doc.id).update({
       'lastPasswordChange': DateTime.now()
           .subtract(const Duration(days: 31))
@@ -413,14 +436,23 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<String> getSecurityQuestion(String username) async {
-    final querySnapshot = await _firestore
+    final cleanInput = username.trim().toLowerCase();
+    var querySnapshot = await _firestore
         .collection('users')
-        .where('username', isEqualTo: username.trim().toLowerCase())
+        .where('username', isEqualTo: cleanInput)
         .limit(1)
         .get();
 
     if (querySnapshot.docs.isEmpty) {
-      throw Exception('No se encontró ningún usuario con ese nombre de usuario.');
+      querySnapshot = await _firestore
+          .collection('users')
+          .where('email', isEqualTo: cleanInput)
+          .limit(1)
+          .get();
+    }
+
+    if (querySnapshot.docs.isEmpty) {
+      throw Exception('No se encontró ningún usuario con ese nombre de usuario o correo.');
     }
 
     final doc = querySnapshot.docs.first;

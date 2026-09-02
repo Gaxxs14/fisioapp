@@ -464,7 +464,7 @@ class _OrthopedicTestCard extends StatelessWidget {
           ],
         ),
       ),
-    ).animate().fadeIn(delay: Duration(milliseconds: 40 * widget.index)).slideY(begin: 0.08, end: 0);
+    ).animate().fadeIn(delay: Duration(milliseconds: 40 * index)).slideY(begin: 0.08, end: 0);
   }
 
   Widget _buildMetricBadge(String label, String value, Color color, bool isDark) {

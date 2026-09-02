@@ -13,7 +13,7 @@ import '../providers/session_provider.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/entities/soap_template.dart';
 import '../../../billing/presentation/providers/billing_provider.dart';
-import '../../tools/presentation/widgets/body_pain_map_widget.dart';
+import '../../../tools/presentation/widgets/body_pain_map_widget.dart';
 
 // Mapa de etiquetas de patología para mostrar en la UI
 const Map<String, String> _pathologyLabels = {

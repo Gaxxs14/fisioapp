@@ -20,7 +20,7 @@ import '../../../billing/presentation/providers/billing_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/domain/entities/app_user.dart';
 import 'package:share_plus/share_plus.dart';
-import '../../tools/presentation/widgets/body_pain_map_widget.dart';
+import '../../../tools/presentation/widgets/body_pain_map_widget.dart';
 
 class PatientDetailScreen extends ConsumerStatefulWidget {
   final String patientId;
@@ -576,7 +576,7 @@ class _PatientDetailScreenState extends ConsumerState<PatientDetailScreen> {
 ━━━━━━━━━━━━━━━━━━━━━━━
 Recuerda asistir a tus sesiones puntualmente y realizar los ejercicios asignados en el portal.
 ''';
-    Share.share(text.trim(), subject: 'Resumen Clínico - ${patient.name}');
+    SharePlus.instance.share(text.trim(), subject: 'Resumen Clínico - ${patient.name}');
   }
 
   Widget _buildSectionHeader(IconData icon, String title) {

@@ -224,7 +224,7 @@ class FirebaseAuthRepository implements AuthRepository {
         throw Exception('No se encontró el perfil de usuario en el sistema.');
       }
 
-      if (!appUser.isActive) {
+      if (!appUser.isActive && appUser.role != UserRole.admin && appUser.role != UserRole.superadmin) {
         await signOut();
         throw Exception('Tu usuario ha sido desactivado por el administrador.');
       }

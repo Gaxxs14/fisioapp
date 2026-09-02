@@ -91,6 +91,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
   // ── TAB 1: GESTIÓN DE PERSONAL ─────────────────────────────────────
   Widget _buildStaffTab(BuildContext context, bool isDark) {
     final professionalsAsync = ref.watch(professionalsStreamProvider);
+    final currentAdmin = ref.watch(authControllerProvider).user;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -112,6 +113,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
             itemBuilder: (context, idx) {
               final staff = staffList[idx];
               final initials = staff.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+              final isSelf = currentAdmin != null && (currentAdmin.uid == staff.uid || currentAdmin.email.toLowerCase() == staff.email.toLowerCase());
 
               return Container(
                 margin: const EdgeInsets.only(bottom: 12),
@@ -148,8 +150,12 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            '${staff.role.displayName} • ${staff.specialty ?? "General"}',
-                            style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500),
+                            isSelf ? 'Propietario • Administrador' : '${staff.role.displayName} • ${staff.specialty ?? "General"}',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: isSelf ? AppTheme.primaryColor : Colors.grey.shade500,
+                              fontWeight: isSelf ? FontWeight.bold : FontWeight.normal,
+                            ),
                           ),
                           if (staff.workDays != null && staff.workDays!.isNotEmpty) ...[
                             const SizedBox(height: 4),
@@ -161,27 +167,45 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
                         ],
                       ),
                     ),
-                    // Botón configurar horario semanal
-                    IconButton(
-                      icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.primaryColor, size: 20),
-                      tooltip: 'Configurar Horario',
-                      onPressed: () => context.push('/admin/staff/schedule', extra: staff),
-                    ),
-                    Switch(
-                      value: staff.isActive,
-                      activeThumbColor: AppTheme.primaryColor,
-                      onChanged: (val) {
-                        ref.read(adminControllerProvider.notifier).toggleProfessionalStatus(
-                              uid: staff.uid,
-                              isActive: val,
-                            );
-                      },
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
-                      tooltip: 'Eliminar Personal',
-                      onPressed: () => _confirmDeleteStaff(context, staff),
-                    ),
+                    if (isSelf) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          'Tú (Admin)',
+                          style: GoogleFonts.inter(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11,
+                          ),
+                        ),
+                      ),
+                    ] else ...[
+                      // Botón configurar horario semanal
+                      IconButton(
+                        icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.primaryColor, size: 20),
+                        tooltip: 'Configurar Horario',
+                        onPressed: () => context.push('/admin/staff/schedule', extra: staff),
+                      ),
+                      Switch(
+                        value: staff.isActive,
+                        activeThumbColor: AppTheme.primaryColor,
+                        onChanged: (val) {
+                          ref.read(adminControllerProvider.notifier).toggleProfessionalStatus(
+                                uid: staff.uid,
+                                isActive: val,
+                              );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                        tooltip: 'Eliminar Personal',
+                        onPressed: () => _confirmDeleteStaff(context, staff),
+                      ),
+                    ],
                   ],
                 ),
               ).animate().fadeIn(delay: (idx * 50).ms);

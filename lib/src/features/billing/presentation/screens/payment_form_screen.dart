@@ -124,13 +124,20 @@ class _PaymentFormScreenState extends ConsumerState<PaymentFormScreen> {
                     children: [
                       const Icon(Icons.person_rounded, color: AppTheme.primaryColor),
                       const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Paciente a Cobrar:', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500)),
-                          const SizedBox(height: 2),
-                          Text(widget.patientName, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14)),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Paciente a Cobrar:', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500)),
+                            const SizedBox(height: 2),
+                            Text(
+                              widget.patientName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),

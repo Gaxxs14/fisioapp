@@ -290,17 +290,21 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'MIS GANANCIAS NETAS HOY',
-                        style: GoogleFonts.inter(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                          letterSpacing: 1.2,
+                      Expanded(
+                        child: Text(
+                          'MIS GANANCIAS NETAS HOY',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withValues(alpha: 0.85),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 11.5,
+                            letterSpacing: 1.1,
+                          ),
                         ),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
@@ -356,18 +360,26 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'Acuerdo de Honorarios / Reparto:',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13.5),
+                      Expanded(
+                        child: Text(
+                          'Reparto de Honorarios:',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13),
+                        ),
                       ),
-                      Text(
-                        '${(_commissionRate * 100).toInt()}% Fisio / ${(100 - (_commissionRate * 100)).toInt()}% Clínica',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w700,
-                          color: AppTheme.primaryColor,
-                          fontSize: 12.5,
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryColor.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${(_commissionRate * 100).toInt()}% Fisio • ${(100 - (_commissionRate * 100)).toInt()}% Clínica',
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.primaryColor,
+                            fontSize: 11.5,
+                          ),
                         ),
                       ),
                     ],
@@ -415,9 +427,13 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                       children: [
                         Text('Tus Honorarios', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500)),
                         const SizedBox(height: 4),
-                        Text(
-                          '\$${therapistNet.toStringAsFixed(2)}',
-                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '\$${therapistNet.toStringAsFixed(2)}',
+                            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                          ),
                         ),
                       ],
                     ),
@@ -439,9 +455,13 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                       children: [
                         Text('Canon de Clínica', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500)),
                         const SizedBox(height: 4),
-                        Text(
-                          '\$${clinicFee.toStringAsFixed(2)}',
-                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                        FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            '\$${clinicFee.toStringAsFixed(2)}',
+                            style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                          ),
                         ),
                       ],
                     ),
@@ -661,18 +681,29 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500)),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.bold, color: Colors.grey.shade500),
+                ),
+              ),
+              const SizedBox(width: 4),
               Icon(icon, color: color, size: 18),
             ],
           ),
           const SizedBox(height: 8),
-          Text(
-            '\$${amount.toStringAsFixed(2)}',
-            style: GoogleFonts.inter(
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              '\$${amount.toStringAsFixed(2)}',
+              style: GoogleFonts.inter(
+                fontSize: 16,
+                fontWeight: FontWeight.w800,
+              ),
             ),
           ),
         ],
@@ -715,23 +746,28 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
             ),
             child: Icon(icon, color: iconColor, size: 18),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   tx.concept,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   tx.patientName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500),
                 ),
               ],
             ),
           ),
+          const SizedBox(width: 8),
           Text(
             '\$${tx.amount.toStringAsFixed(2)}',
             style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14),
@@ -868,9 +904,13 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                           selectedServiceId = services.first.id;
                         }
                         return DropdownButtonFormField<String>(
+                          isExpanded: true,
                           initialValue: selectedServiceId,
                           decoration: const InputDecoration(labelText: 'Servicio Vinculado'),
-                          items: services.map((s) => DropdownMenuItem(value: s.id, child: Text(s.name))).toList(),
+                          items: services.map((s) => DropdownMenuItem(
+                            value: s.id,
+                            child: Text(s.name, overflow: TextOverflow.ellipsis, maxLines: 1),
+                          )).toList(),
                           onChanged: (val) => setModalState(() => selectedServiceId = val),
                         );
                       },
@@ -963,13 +1003,19 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
                       ),
                       const SizedBox(height: 16),
                       DropdownButtonFormField<String>(
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: 'Seleccionar Paciente',
                           prefixIcon: Icon(Icons.person_outline),
                         ),
                         items: patients.map((p) => DropdownMenuItem(
                           value: p.id,
-                          child: Text('${p.name} (DNI: ${p.dni})', style: GoogleFonts.inter(fontSize: 13)),
+                          child: Text(
+                            '${p.name} (DNI: ${p.dni})',
+                            style: GoogleFonts.inter(fontSize: 13),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         )).toList(),
                         onChanged: (val) {
                           selectedPatientId = val;

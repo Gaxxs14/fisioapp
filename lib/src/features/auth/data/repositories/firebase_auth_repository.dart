@@ -64,12 +64,21 @@ class FirebaseAuthRepository implements AuthRepository {
     required String password,
   }) async {
     try {
-      // 1. Buscar el usuario por nombre de usuario en Firestore
+      // 1. Buscar el usuario por nombre de usuario o correo en Firestore
+      final cleanInput = username.trim().toLowerCase();
       var querySnapshot = await _firestore
           .collection('users')
-          .where('username', isEqualTo: username.trim().toLowerCase())
+          .where('username', isEqualTo: cleanInput)
           .limit(1)
           .get();
+
+      if (querySnapshot.docs.isEmpty) {
+        querySnapshot = await _firestore
+            .collection('users')
+            .where('email', isEqualTo: cleanInput)
+            .limit(1)
+            .get();
+      }
 
       if (querySnapshot.docs.isEmpty) {
         if (username.trim().toLowerCase() == 'superadmin' && password == 'admin1234') {

@@ -482,6 +482,26 @@ class HomeScreen extends ConsumerWidget {
         delay: 320,
       ),
       _QuickAction(
+        title: l10n.locale == 'es' ? 'Clínica & Tests' : 'Clinical Tools',
+        subtitle: l10n.locale == 'es' ? 'Pruebas ortopédicas' : 'Orthopedic maneuvers',
+        icon: Icons.healing_rounded,
+        color: const Color(0xFF0D9488),
+        bgColor: const Color(0xFFCCFBF1),
+        bgColorDark: const Color(0xFF115E59),
+        route: '/tools',
+        delay: 370,
+      ),
+      _QuickAction(
+        title: l10n.locale == 'es' ? 'Insumos Clínicos' : 'Supplies & Stock',
+        subtitle: l10n.locale == 'es' ? 'Agujas, cintas y stock' : 'Consumables stock',
+        icon: Icons.inventory_2_outlined,
+        color: const Color(0xFFF59E0B),
+        bgColor: const Color(0xFFFEF3C7),
+        bgColorDark: const Color(0xFF78350F),
+        route: '/billing/supplies',
+        delay: 400,
+      ),
+      _QuickAction(
         title: l10n.locale == 'es' ? 'Reportes' : 'Analytics',
         subtitle: l10n.locale == 'es' ? 'Métricas y balances' : 'Balances & charts',
         icon: Icons.analytics_outlined,
@@ -489,7 +509,7 @@ class HomeScreen extends ConsumerWidget {
         bgColor: const Color(0xFFFDF2F8),
         bgColorDark: const Color(0xFF500724),
         route: '/reports',
-        delay: 370,
+        delay: 430,
       ),
       if (user?.role == UserRole.admin)
         _QuickAction(
@@ -500,7 +520,7 @@ class HomeScreen extends ConsumerWidget {
           bgColor: const Color(0xFFF5F3FF),
           bgColorDark: const Color(0xFF2E1065),
           route: '/admin',
-          delay: 420,
+          delay: 460,
         ),
     ];
 

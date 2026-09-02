@@ -18,11 +18,12 @@ class BillingDashboardScreen extends ConsumerStatefulWidget {
 
 class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  double _commissionRate = 0.60; // 60% por defecto para el terapeuta
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
   }
 
   @override
@@ -39,20 +40,37 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
       backgroundColor: isDark ? const Color(0xFF0A0F1E) : const Color(0xFFF0F4F8),
       appBar: AppBar(
         title: Text(
-          'Módulo de Cobranza',
+          'Módulo Financiero',
           style: GoogleFonts.inter(fontWeight: FontWeight.bold),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        actions: [
+          IconButton(
+            icon: Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(Icons.inventory_2_outlined, color: AppTheme.primaryColor, size: 20),
+            ),
+            tooltip: 'Insumos y Stock',
+            onPressed: () => context.push('/billing/supplies'),
+          ),
+          const SizedBox(width: 8),
+        ],
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: AppTheme.primaryColor,
           indicatorSize: TabBarIndicatorSize.label,
           labelColor: AppTheme.primaryColor,
           unselectedLabelColor: Colors.grey,
+          isScrollable: true,
           labelStyle: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13),
           tabs: const [
             Tab(text: 'Cobros Diario', icon: Icon(Icons.attach_money_rounded, size: 20)),
+            Tab(text: 'Mis Ganancias', icon: Icon(Icons.account_balance_wallet_rounded, size: 20)),
             Tab(text: 'Catálogo', icon: Icon(Icons.menu_book_rounded, size: 20)),
             Tab(text: 'Vender Bonos', icon: Icon(Icons.card_membership_rounded, size: 20)),
           ],
@@ -63,6 +81,7 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
           controller: _tabController,
           children: [
             _buildDailyTab(context, isDark),
+            _buildEarningsTab(context, isDark),
             _buildCatalogTab(context, isDark),
             _buildBonoSalesTab(context, isDark),
           ],
@@ -223,6 +242,218 @@ class _BillingDashboardScreenState extends ConsumerState<BillingDashboardScreen>
       },
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, s) => Center(child: Text('Error al cargar transacciones: $e', style: GoogleFonts.inter())),
+    );
+  }
+
+  // ── TAB ADICIONAL: MIS GANANCIAS & HONORARIOS ─────────────────────
+  Widget _buildEarningsTab(BuildContext context, bool isDark) {
+    final now = DateTime.now();
+    final todayDate = DateTime(now.year, now.month, now.day);
+    final transactionsAsync = ref.watch(transactionsStreamProvider(todayDate));
+
+    return transactionsAsync.when(
+      data: (transactions) {
+        double grandTotal = 0;
+        for (var tx in transactions) {
+          if (tx.paymentMethod != 'pending') {
+            grandTotal += tx.amount;
+          }
+        }
+
+        final therapistNet = grandTotal * _commissionRate;
+        final clinicFee = grandTotal * (1.0 - _commissionRate);
+        final completedPatients = transactions.where((t) => t.paymentMethod != 'pending').length;
+
+        return ListView(
+          physics: const BouncingScrollPhysics(),
+          padding: const EdgeInsets.all(24.0),
+          children: [
+            // Card de Ganancia Neta Personal
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF059669), Color(0xFF10B981)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.35),
+                    blurRadius: 18,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'MIS GANANCIAS NETAS HOY',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withValues(alpha: 0.85),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                          letterSpacing: 1.2,
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${(_commissionRate * 100).toInt()}% Comisión',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '\$${therapistNet.toStringAsFixed(2)}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    '$completedPatients pacientes cobrados • Total facturado en clínica: \$${grandTotal.toStringAsFixed(2)}',
+                    style: GoogleFonts.inter(
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Selector de porcentaje de comisión / acuerdo
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF131B2E) : Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Acuerdo de Honorarios / Reparto:',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 13.5),
+                      ),
+                      Text(
+                        '${(_commissionRate * 100).toInt()}% Fisio / ${(100 - (_commissionRate * 100)).toInt()}% Clínica',
+                        style: GoogleFonts.inter(
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.primaryColor,
+                          fontSize: 12.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Slider(
+                    value: _commissionRate,
+                    min: 0.30,
+                    max: 1.0,
+                    divisions: 14,
+                    activeColor: AppTheme.primaryColor,
+                    onChanged: (val) {
+                      setState(() {
+                        _commissionRate = val;
+                      });
+                    },
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('30% Junior', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500)),
+                      Text('60% Estándar', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500)),
+                      Text('100% Autónomo', style: GoogleFonts.inter(fontSize: 11, color: Colors.grey.shade500)),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+
+            // Desglose de Distribución
+            Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF131B2E) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Tus Honorarios', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${therapistNet.toStringAsFixed(2)}',
+                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: const Color(0xFF10B981)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF131B2E) : Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Canon de Clínica', style: GoogleFonts.inter(fontSize: 12, color: Colors.grey.shade500)),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${clinicFee.toStringAsFixed(2)}',
+                          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blueGrey),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, s) => Center(child: Text('Error al calcular honorarios: $e', style: GoogleFonts.inter())),
     );
   }
 

@@ -30,6 +30,10 @@ import '../../features/patients/presentation/screens/patient_portal_dashboard.da
 import '../../features/billing/presentation/screens/subscription_dashboard_screen.dart';
 import '../../features/auth/domain/entities/app_user.dart';
 import '../../features/admin/presentation/screens/super_admin_dashboard_screen.dart';
+import '../widgets/main_nav_scaffold.dart';
+import '../../features/tools/presentation/screens/tools_hub_screen.dart';
+import '../../features/tools/presentation/screens/orthopedic_tests_screen.dart';
+import '../../features/billing/presentation/screens/clinical_supplies_screen.dart';
 
 class RouterRefreshNotifier extends ChangeNotifier {
   RouterRefreshNotifier(Ref ref) {
@@ -64,16 +68,72 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) => const ChangePasswordScreen(),
       ),
       GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
-      ),
-      GoRoute(
         path: '/profile',
         builder: (context, state) => const ProfileScreen(),
       ),
+
+      // ── SHELL CON DOCK FLOTANTE DE NAVEGACIÓN (UI 2.0) ────────────
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainNavScaffold(navigationShell: navigationShell);
+        },
+        branches: [
+          // Rama 0: Inicio
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          // Rama 1: Agenda / Citas
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/appointments',
+                builder: (context, state) => const CalendarDashboardScreen(),
+              ),
+            ],
+          ),
+          // Rama 2: Directorio de Pacientes
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/patients',
+                builder: (context, state) => const PatientListScreen(),
+              ),
+            ],
+          ),
+          // Rama 3: Facturación, Caja y Honorarios
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/billing',
+                builder: (context, state) => const BillingDashboardScreen(),
+              ),
+            ],
+          ),
+          // Rama 4: Herramientas Clínicas y Academia
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/tools',
+                builder: (context, state) => const ToolsHubScreen(),
+              ),
+            ],
+          ),
+        ],
+      ),
+
+      // ── RUTAS INDIVIDUALES / MODALES Y DETALLES ───────────────────
       GoRoute(
-        path: '/patients',
-        builder: (context, state) => const PatientListScreen(),
+        path: '/tools/orthopedic',
+        builder: (context, state) => const OrthopedicTestsScreen(),
+      ),
+      GoRoute(
+        path: '/billing/supplies',
+        builder: (context, state) => const ClinicalSuppliesScreen(),
       ),
       GoRoute(
         path: '/patients/register',

@@ -1,30 +1,43 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:fisioapp/main.dart';
+import 'package:fisioapp/src/features/tools/data/repositories/orthopedic_tests_repository.dart';
+import 'package:fisioapp/src/features/tools/domain/entities/orthopedic_test.dart';
+import 'package:fisioapp/src/features/auth/domain/entities/app_user.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('FisioApp Unit & Clinical Tests', () {
+    test('OrthopedicTestsRepository loads all clinical tests', () {
+      final tests = OrthopedicTestsRepository.allTests;
+      expect(tests.isNotEmpty, true);
+      expect(tests.length, greaterThanOrEqualTo(15));
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('OrthopedicTestsRepository filters by joint region correctly', () {
+      final kneeTests = OrthopedicTestsRepository.getByRegion(JointRegion.knee);
+      expect(kneeTests.isNotEmpty, true);
+      for (final test in kneeTests) {
+        expect(test.region, JointRegion.knee);
+      }
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('OrthopedicTestsRepository search works for Lachman', () {
+      final results = OrthopedicTestsRepository.search('Lachman');
+      expect(results.any((t) => t.name.contains('Lachman')), true);
+    });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    test('AppUser UserRole supports student role', () {
+      expect(UserRole.student.displayName, 'Estudiante / Pasante');
+      
+      final map = {
+        'uid': 'student_123',
+        'email': 'student@fisio.edu',
+        'name': 'Pasante Carlos',
+        'clinicId': 'clinic_1',
+        'role': 'student',
+      };
+
+      final user = AppUser.fromMap(map);
+      expect(user.role, UserRole.student);
+      expect(user.name, 'Pasante Carlos');
+    });
   });
 }

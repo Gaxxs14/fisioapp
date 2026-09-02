@@ -173,6 +173,17 @@ class AdminController extends Notifier<AdminUiState> {
     }
   }
 
+  Future<void> deleteStaffUser({required String uid}) async {
+    state = state.copyWith(isLoading: true, errorMessage: null, success: false);
+    try {
+      final repository = ref.read(adminRepositoryProvider);
+      await repository.deleteStaffUser(uid: uid);
+      state = state.copyWith(isLoading: false, success: true);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, errorMessage: e.toString());
+    }
+  }
+
   Future<void> updateStaffWorkSchedule({
     required String uid,
     required List<String> workDays,

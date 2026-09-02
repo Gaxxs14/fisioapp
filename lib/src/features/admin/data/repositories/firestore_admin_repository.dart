@@ -94,6 +94,11 @@ class FirestoreAdminRepository implements AdminRepository {
   }
 
   @override
+  Future<void> deleteStaffUser({required String uid}) async {
+    await _firestore.collection('users').doc(uid).delete();
+  }
+
+  @override
   Future<void> updateUserWorkSchedule({
     required String uid,
     required List<String> workDays,

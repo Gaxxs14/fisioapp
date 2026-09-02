@@ -163,11 +163,10 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
                     ),
                     // Botón configurar horario semanal
                     IconButton(
-                      icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.primaryColor, size: 22),
+                      icon: const Icon(Icons.calendar_month_outlined, color: AppTheme.primaryColor, size: 20),
                       tooltip: 'Configurar Horario',
                       onPressed: () => context.push('/admin/staff/schedule', extra: staff),
                     ),
-                    const SizedBox(width: 4),
                     Switch(
                       value: staff.isActive,
                       activeThumbColor: AppTheme.primaryColor,
@@ -177,6 +176,11 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
                               isActive: val,
                             );
                       },
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
+                      tooltip: 'Eliminar Personal',
+                      onPressed: () => _confirmDeleteStaff(context, staff),
                     ),
                   ],
                 ),
@@ -507,6 +511,53 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> wit
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _confirmDeleteStaff(BuildContext context, AppUser staff) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            const Icon(Icons.warning_amber_rounded, color: Colors.redAccent, size: 24),
+            const SizedBox(width: 8),
+            Text('Eliminar Personal', style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 16)),
+          ],
+        ),
+        content: Text(
+          '¿Estás seguro de que deseas eliminar a "${staff.name}" (${staff.role.displayName}) de tu clínica?\n\nEsta acción revocará su acceso al sistema y eliminará su registro de profesional.',
+          style: GoogleFonts.inter(fontSize: 13, height: 1.4),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Cancelar', style: GoogleFonts.inter()),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(adminControllerProvider.notifier).deleteStaffUser(uid: staff.uid);
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Se ha eliminado a ${staff.name} de la clínica.', style: GoogleFonts.inter()),
+                    backgroundColor: Colors.redAccent,
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                );
+              }
+            },
+            child: Text('Eliminar', style: GoogleFonts.inter(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

@@ -12,6 +12,7 @@ abstract class AdminRepository {
   Stream<List<AppUser>> watchStaff({required String clinicId});
   Future<void> saveStaffUser(AppUser user, String password);
   Future<void> toggleStaffStatus({required String uid, required bool isActive});
+  Future<void> deleteStaffUser({required String uid});
   Future<void> updateUserWorkSchedule({
     required String uid,
     required List<String> workDays,

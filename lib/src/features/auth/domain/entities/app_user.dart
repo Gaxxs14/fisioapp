@@ -2,6 +2,7 @@ enum UserRole {
   admin,
   physio,
   receptionist,
+  student,
   superadmin;
 
   String get displayName {
@@ -12,6 +13,8 @@ enum UserRole {
         return 'Fisioterapeuta';
       case UserRole.receptionist:
         return 'Recepcionista';
+      case UserRole.student:
+        return 'Estudiante / Pasante';
       case UserRole.superadmin:
         return 'Super-Administrador';
     }

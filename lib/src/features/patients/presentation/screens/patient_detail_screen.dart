@@ -19,6 +19,8 @@ import '../../domain/entities/patient_evaluation.dart';
 import '../../../billing/presentation/providers/billing_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/domain/entities/app_user.dart';
+import 'package:share_plus/share_plus.dart';
+import '../../tools/presentation/widgets/body_pain_map_widget.dart';
 
 class PatientDetailScreen extends ConsumerStatefulWidget {
   final String patientId;
@@ -445,8 +447,42 @@ class _PatientDetailScreenState extends ConsumerState<PatientDetailScreen> {
               ],
             ),
           ).animate().fadeIn(duration: 300.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1)),
-          const SizedBox(height: 24),
-          
+          const SizedBox(height: 16),
+
+          // Acciones Clínicas Rápidas (Mapa de dolor y compartir)
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.accessibility_new_rounded, size: 18),
+                  label: Text('Puntos de Dolor', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12)),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppTheme.primaryColor,
+                    side: const BorderSide(color: AppTheme.primaryColor, width: 1.5),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  ),
+                  onPressed: () => _openPainMapModal(context),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: ElevatedButton.icon(
+                  icon: const Icon(Icons.share_rounded, size: 18, color: Colors.white),
+                  label: Text('Compartir Ficha', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 12, color: Colors.white)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF25D366),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 2,
+                  ),
+                  onPressed: () => _sharePatientSummary(patient),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
           _buildSectionHeader(Icons.contact_mail_outlined, 'Información del Paciente'),
           const SizedBox(height: 10),
           _buildCardWrapper(
@@ -480,6 +516,67 @@ class _PatientDetailScreenState extends ConsumerState<PatientDetailScreen> {
         ],
       ),
     );
+  }
+
+  void _openPainMapModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        builder: (ctx, scrollCtrl) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF0A0F1E)
+                : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mapa Anatómico de Puntos de Dolor',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollCtrl,
+                  physics: const BouncingScrollPhysics(),
+                  child: const BodyPainMapWidget(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _sharePatientSummary(Patient patient) {
+    final text = '''
+🏥 *FisioApp - Resumen del Paciente*
+━━━━━━━━━━━━━━━━━━━━━━━
+👤 *Nombre:* ${patient.name}
+🪪 *DNI / Cédula:* ${patient.dni}
+📞 *Teléfono:* ${patient.phone}
+🎂 *Edad:* ${patient.age} años
+━━━━━━━━━━━━━━━━━━━━━━━
+Recuerda asistir a tus sesiones puntualmente y realizar los ejercicios asignados en el portal.
+''';
+    Share.share(text.trim(), subject: 'Resumen Clínico - ${patient.name}');
   }
 
   Widget _buildSectionHeader(IconData icon, String title) {

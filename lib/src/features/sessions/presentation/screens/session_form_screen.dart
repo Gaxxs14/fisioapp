@@ -13,6 +13,7 @@ import '../providers/session_provider.dart';
 import '../../domain/entities/session.dart';
 import '../../domain/entities/soap_template.dart';
 import '../../../billing/presentation/providers/billing_provider.dart';
+import '../../tools/presentation/widgets/body_pain_map_widget.dart';
 
 // Mapa de etiquetas de patología para mostrar en la UI
 const Map<String, String> _pathologyLabels = {
@@ -167,6 +168,53 @@ class _SessionFormScreenState extends ConsumerState<SessionFormScreen> {
         _photoPaths.add(pickedFile.path);
       });
     }
+  }
+
+  void _openPainMapModal(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        maxChildSize: 0.95,
+        minChildSize: 0.5,
+        builder: (ctx, scrollCtrl) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).brightness == Brightness.dark
+                ? const Color(0xFF0A0F1E)
+                : Colors.white,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade400,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Mapa Anatómico de Puntos de Dolor',
+                style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollCtrl,
+                  physics: const BouncingScrollPhysics(),
+                  child: const BodyPainMapWidget(),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   void _addCustomTechnique() {
@@ -599,8 +647,22 @@ class _SessionFormScreenState extends ConsumerState<SessionFormScreen> {
                       const SizedBox(height: 24),
 
                       // ── REGISTRO CLINICO SOAP ───────────────────────
-                      _buildSectionHeader(Icons.edit_note_outlined, 'Notas SOAP (Registro Clínico)'),
-                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(child: _buildSectionHeader(Icons.edit_note_outlined, 'Notas SOAP (Registro Clínico)')),
+                          TextButton.icon(
+                            style: TextButton.styleFrom(
+                              foregroundColor: AppTheme.primaryColor,
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            ),
+                            icon: const Icon(Icons.accessibility_new_rounded, size: 16),
+                            label: Text('Mapa de Dolor', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.bold)),
+                            onPressed: () => _openPainMapModal(context),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       _buildCardWrapper(
                         isDark: isDark,
                         child: Column(
@@ -739,7 +801,52 @@ class _SessionFormScreenState extends ConsumerState<SessionFormScreen> {
                               inactiveColor: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.shade300,
                               onChanged: (val) => setState(() => _painLevelPost = val),
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
+
+                            // Comparador de Alivio de Dolor en la Sesión
+                            if (_painLevelPre > 0)
+                              Container(
+                                margin: const EdgeInsets.only(bottom: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                                decoration: BoxDecoration(
+                                  color: (_painLevelPost < _painLevelPre)
+                                      ? const Color(0xFF10B981).withValues(alpha: isDark ? 0.2 : 0.1)
+                                      : Colors.grey.withValues(alpha: isDark ? 0.15 : 0.08),
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: (_painLevelPost < _painLevelPre)
+                                        ? const Color(0xFF10B981).withValues(alpha: 0.35)
+                                        : Colors.transparent,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      (_painLevelPost < _painLevelPre) ? Icons.trending_down_rounded : Icons.info_outline_rounded,
+                                      color: (_painLevelPost < _painLevelPre) ? const Color(0xFF10B981) : Colors.grey,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        (_painLevelPost < _painLevelPre)
+                                            ? '¡Evolución Favorable! Reducción de ${(_painLevelPre - _painLevelPost).toInt()} puntos (${(((_painLevelPre - _painLevelPost) / _painLevelPre) * 100).toInt()}% de alivio inmediato).'
+                                            : (_painLevelPost == _painLevelPre)
+                                                ? 'Dolor estable sin variaciones tras la intervención.'
+                                                : 'Aumento de dolor post-sesión. Ajustar dosificación de carga.',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: (_painLevelPost < _painLevelPre)
+                                              ? (isDark ? const Color(0xFF34D399) : const Color(0xFF047857))
+                                              : (isDark ? Colors.grey.shade400 : Colors.grey.shade700),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            const SizedBox(height: 8),
 
                             // Duración (mejorada a 180 min, pasos de 15 min)
                             Row(
